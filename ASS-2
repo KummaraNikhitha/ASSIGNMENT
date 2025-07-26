@@ -1,0 +1,225 @@
+//1. Caesar Cipher – Encoding & Decoding
+
+
+def caesar_cipher(message, shift, encode=True):
+    result = ""
+    shift = shift % 26
+    if not encode:
+        shift = -shift
+    for char in message:
+        if char.isalpha():
+            base = ord('A') if char.isupper() else ord('a')
+            new_char = chr((ord(char) - base + shift) % 26 + base)
+            result += new_char
+        else:
+            result += char
+    return result
+
+# Example usage
+encoded = caesar_cipher("Hello World!", 3)
+decoded = caesar_cipher(encoded, 3, encode=False)
+print("Encoded:", encoded)
+print("Decoded:", decoded)
+
+//2. Indian Currency Format
+def format_indian_currency(amount):
+    if '.' in str(amount):
+        integer_part, fractional_part = str(amount).split('.')
+    else:
+        integer_part, fractional_part = str(amount), ""
+
+    # Last 3 digits first
+    n = len(integer_part)
+    if n <= 3:
+        formatted = integer_part
+    else:
+        formatted = integer_part[-3:]
+        integer_part = integer_part[:-3]
+        while len(integer_part) > 0:
+            formatted = integer_part[-2:] + ',' + formatted
+            integer_part = integer_part[:-2]
+
+    return formatted + ('.' + fractional_part if fractional_part else '')
+
+# Example usage
+print(format_indian_currency(123456.7891))  # Output: 1,23,456.7891
+
+//3. Combine Two Lists Based on Position Overlap
+def is_overlap(a, b):
+    a_start, a_end = a["positions"]
+    b_start, b_end = b["positions"]
+    overlap = max(0, min(a_end, b_end) - max(a_start, b_start))
+    length = b_end - b_start
+    return overlap > (length // 2)
+
+def combine_lists(list1, list2):
+    combined = []
+    i, j = 0, 0
+
+    while i < len(list1) and j < len(list2):
+        if list1[i]["positions"][0] < list2[j]["positions"][0]:
+            first, second = list1[i], list2[j]
+        else:
+            first, second = list2[j], list1[i]
+
+        if is_overlap(first, second):
+            merged = {
+                "positions": first["positions"],
+                "values": first["values"] + second["values"]
+            }
+            combined.append(merged)
+            i += list1[i] == first
+            j += list2[j] == second
+        else:
+            combined.append(first)
+            i += list1[i] == first
+            j += list2[j] == first
+
+    combined.extend(list1[i:])
+    combined.extend(list2[j:])
+    return sorted(combined, key=lambda x: x["positions"][0])
+
+# Example usage
+list1 = [{"positions": [0, 5], "values": ["A"]}]
+list2 = [{"positions": [3, 7], "values": ["B"]}]
+print(combine_lists(list1, list2))
+
+//4. Minimizing Loss (House Price)
+def minimize_loss(prices):
+    indexed_prices = [(price, year) for year, price in enumerate(prices, start=1)]
+    indexed_prices.sort(reverse=True)  # highest to lowest
+
+    min_loss = float('inf')
+    buy_year = sell_year = -1
+
+    for i in range(len(indexed_prices)):
+        for j in range(i+1, len(indexed_prices)):
+            buy_price, buy_year_candidate = indexed_prices[i]
+            sell_price, sell_year_candidate = indexed_prices[j]
+            if sell_year_candidate > buy_year_candidate and sell_price < buy_price:
+                loss = buy_price - sell_price
+                if loss < min_loss:
+                    min_loss = loss
+                    buy_year, sell_year = buy_year_candidate, sell_year_candidate
+
+    return {"buy_year": buy_year, "sell_year": sell_year, "min_loss": min_loss}
+
+# Example usage
+prices = [20, 15, 7, 2, 13]
+print(minimize_loss(prices))  # Output: {'buy_year': 2, 'sell_year': 5, 'min_loss': 2}
+
+
+
+import math
+
+ Caesar Cipher: Encoding & Decoding
+def caesar_cipher(message, shift, encode=True):
+    shift = shift % 26
+    if not encode:
+        shift = -shift
+    result = ""
+    for char in message:
+        if char.isalpha():
+            base = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - base + shift) % 26 + base)
+        else:
+            result += char
+    return result
+
+ Indian Currency Formatter
+def format_indian_currency(amount):
+    amount_str = str(amount)
+    if '.' in amount_str:
+        integer_part, fractional = amount_str.split('.')
+    else:
+        integer_part, fractional = amount_str, ""
+
+    n = len(integer_part)
+    if n <= 3:
+        formatted = integer_part
+    else:
+        formatted = integer_part[-3:]
+        integer_part = integer_part[:-3]
+        while len(integer_part) > 0:
+            formatted = integer_part[-2:] + ',' + formatted
+            integer_part = integer_part[:-2]
+    return formatted + ('.' + fractional if fractional else "")
+
+ Combine Lists Based on Position Overlap
+def is_overlap(a, b):
+    a_start, a_end = a["positions"]
+    b_start, b_end = b["positions"]
+    overlap = max(0, min(a_end, b_end) - max(a_start, b_start))
+    b_length = b_end - b_start
+    return overlap > b_length / 2
+
+def combine_lists(list1, list2):
+    merged = []
+    i, j = 0, 0
+
+    while i < len(list1) and j < len(list2):
+        a, b = list1[i], list2[j]
+        if a["positions"][0] <= b["positions"][0]:
+            first, second = a, b
+        else:
+            first, second = b, a
+
+        if is_overlap(first, second):
+            merged.append({
+                "positions": first["positions"],
+                "values": first["values"] + second["values"]
+            })
+            i += list1[i] == first
+            j += list2[j] == second
+        else:
+            merged.append(first)
+            i += list1[i] == first
+            j += list2[j] == first
+
+    merged.extend(list1[i:])
+    merged.extend(list2[j:])
+    merged.sort(key=lambda x: x["positions"][0])
+    return merged
+
+ Minimizing Loss
+def minimize_loss(prices):
+    indexed = [(price, idx+1) for idx, price in enumerate(prices)]
+    indexed.sort(reverse=True)
+
+    min_loss = float('inf')
+    buy_year = sell_year = -1
+
+    for i in range(len(indexed)):
+        for j in range(i+1, len(indexed)):
+            buy_price, buy_idx = indexed[i]
+            sell_price, sell_idx = indexed[j]
+            if sell_idx > buy_idx and sell_price < buy_price:
+                loss = buy_price - sell_price
+                if loss < min_loss:
+                    min_loss = loss
+                    buy_year, sell_year = buy_idx, sell_idx
+
+    return {"buy_year": buy_year, "sell_year": sell_year, "min_loss": min_loss}
+
+# 🧪 Sample Executions
+if __name__ == "__main__":
+    print("🔐 Caesar Cipher:")
+    encoded = caesar_cipher("Hello World!", 3)
+    decoded = caesar_cipher(encoded, 3, encode=False)
+    print("Encoded:", encoded)
+    print("Decoded:", decoded)
+
+    print("\n💰 Indian Currency Format:")
+    print("Formatted:", format_indian_currency(123456.7891))
+
+    print("\n🧪 Combine Lists:")
+    list1 = [{"positions": [0, 5], "values": ["A"]}]
+    list2 = [{"positions": [3, 7], "values": ["B"]}]
+    print("Combined List:", combine_lists(list1, list2))
+
+    print("\n🏠 Minimize Loss:")
+    prices = [20, 15, 7, 2, 13]
+    result = minimize_loss(prices)
+    print("Buy Year:", result["buy_year"], "Sell Year:", result["sell_year"], "Loss:", result["min_loss"])
+
+
