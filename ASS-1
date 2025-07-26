@@ -1,0 +1,93 @@
+import math
+
+class Loan:
+    def __init__(self, loan_id, customer_id, principal, years, rate):
+        self.loan_id = loan_id
+        self.customer_id = customer_id
+        self.principal = principal
+        self.years = years
+        self.rate = rate
+        self.interest = self.calculate_interest()
+        self.total_amount = self.principal + self.interest
+        self.emi = round(self.total_amount / (self.years * 12), 2)
+        self.emis_paid = 0
+        self.amount_paid = 0
+        self.transactions = []
+
+    def calculate_interest(self):
+        return self.principal * self.years * self.rate
+
+    def make_payment(self, amount, mode):
+        self.amount_paid += amount
+        self.transactions.append((mode.upper(), amount))
+        if mode.lower() == "emi":
+            self.emis_paid += 1
+        # recalculate EMIs left
+        balance = self.total_amount - self.amount_paid
+        emi_left = math.ceil(balance / self.emi) if balance > 0 else 0
+        return balance, emi_left
+
+    def ledger(self):
+        balance = self.total_amount - self.amount_paid
+        emi_left = math.ceil(balance / self.emi) if balance > 0 else 0
+        return {
+            "loan_id": self.loan_id,
+            "transactions": self.transactions,
+            "balance": round(balance, 2),
+            "emi_amount": self.emi,
+            "emi_left": emi_left
+        }
+
+    def overview(self):
+        emi_left = math.ceil((self.total_amount - self.amount_paid) / self.emi)
+        return {
+            "loan_id": self.loan_id,
+            "principal": self.principal,
+            "interest": self.interest,
+            "total_amount": self.total_amount,
+            "emi_amount": self.emi,
+            "paid_so_far": self.amount_paid,
+            "emi_left": emi_left
+        }
+
+
+class BankSystem:
+    def __init__(self):
+        self.loans = {}
+        self.loan_counter = 1
+
+    def lend(self, customer_id, principal, years, rate):
+        loan_id = f"L{self.loan_counter:03}"
+        loan = Loan(loan_id, customer_id, principal, years, rate)
+        self.loans[loan_id] = loan
+        self.loan_counter += 1
+        return loan_id, loan.total_amount, loan.emi
+
+    def pay(self, loan_id, amount, mode):
+        if loan_id in self.loans:
+            return self.loans[loan_id].make_payment(amount, mode)
+        return None
+
+    def get_ledger(self, loan_id):
+        return self.loans[loan_id].ledger() if loan_id in self.loans else None
+
+    def get_overview(self, customer_id):
+        overview = []
+        for loan in self.loans.values():
+            if loan.customer_id == customer_id:
+                overview.append(loan.overview())
+        return overview
+
+
+# ✅ Sample Usage
+
+bank = BankSystem()
+loan_id, total_amt, emi = bank.lend("C101", 100000, 2, 0.1)
+print(f"Loan ID: {loan_id}, Total: ₹{total_amt}, EMI: ₹{emi}")
+
+bank.pay(loan_id, 5000, "lump_sum")
+bank.pay(loan_id, emi, "emi")
+bank.pay(loan_id, emi, "emi")
+
+print("\n Ledger:", bank.get_ledger(loan_id))
+print("\n Overview:", bank.get_overview("C101"))
